@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter.messagebox import showerror, askyesno
 from tkinter import colorchooser
 from PIL import Image, ImageOps, ImageTk, ImageFilter, ImageGrab
+import os
 
 
 # defining global variables
@@ -10,31 +11,30 @@ LF_WIDTH = 250
 RF_WIDTH = 700
 HEIGHT = 500
 file_path = ""
+temp_path = "temp.png"
+temp_filter = "temp_filter.png"
 pen_size = 3
 pen_color = "black"
 
-def new_width_height(image, rotation_angle=0):
-    image_aspect_ratio = image.size[1] / float(image.size[0])
-    if rotation_angle % 180 != 0:
-        if image_aspect_ratio > 1:
-            # vertical image
-            new_height = int((RF_WIDTH))
-            new_width = int((new_width / image_aspect_ratio))
-        else:
-            # horizontal image
-            new_width = int((HEIGHT))
-            new_height = int((new_width * image_aspect_ratio))
+
+def get_temp(withFilter=False):
+    if withFilter:
+        image = Image.open(temp_filter)
     else:
-        if image_aspect_ratio > 1:
-            # vertical image
-            new_height = int((HEIGHT))
-            new_width = int((new_height / image_aspect_ratio))
-        else:
-            # horizontal image
-            new_width = int((RF_WIDTH))
-            new_height = int((new_width * image_aspect_ratio))
-    
-    return new_width, new_height
+        image = Image.open(temp_path)
+    image_aspect_ratio = image.size[1] / float(image.size[0])
+    if image_aspect_ratio > 1:
+        # vertical image
+        new_height = int((HEIGHT))
+        new_width = int((new_height / image_aspect_ratio))
+    else:
+        # horizontal image
+        new_width = int((RF_WIDTH))
+        new_height = int((new_width * image_aspect_ratio))
+    image = image.resize((new_width, new_height), Image.LANCZOS)
+    image = ImageTk.PhotoImage(image)
+    return image
+
 
 # function to open the image file
 def add_image():
@@ -44,273 +44,123 @@ def add_image():
         filetypes=[("Image Files", "*.jpg;*.jpeg;*.png;*.gif;*.bmp")],
     )
     if file_path:
-        global image, photo_image
+        global image
         image = Image.open(file_path)
-        new_width, new_height = new_width_height(image)
-        image = image.resize((new_width, new_height), Image.LANCZOS)
-        image = ImageTk.PhotoImage(image)
+        image.save(temp_path)
+        image = get_temp()
         canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+    if os.path.exists(temp_filter):
+        os.remove(temp_filter)
 
 
-# a global variable for checking the flip state of the image
-is_flipped = False
 def flip_image():
     try:
-        global image, photo_image, is_flipped
-        if not is_flipped:
-            # open the image and flip it left and right
-            image = Image.open(file_path).transpose(Image.FLIP_LEFT_RIGHT)
-            is_flipped = True
+        global image
+        image = Image.open(temp_path).transpose(Image.FLIP_LEFT_RIGHT)
+        image.save(temp_path)
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter).transpose(Image.FLIP_LEFT_RIGHT)
+            image.save(temp_filter)
+            image = get_temp(withFilter=True)
         else:
-            # reset the image to its original state
-            image = Image.open(file_path)
-            is_flipped = False
-        new_width, new_height = new_width_height(image)
-        image = image.resize((new_width, new_height), Image.LANCZOS)
+            image = get_temp()
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
-        photo_image = ImageTk.PhotoImage(image)
-        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=photo_image)
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
     except:
         showerror(title="Flip Image Error", message="Please select an image to flip!")
 
 
 # global variable for tracking rotation angle
-rotation_angle = 0
 def rotate_image():
     try:
-        global image, photo_image, rotation_angle
+        global image
         # open the image and rotate it
-        image = Image.open(file_path)
-        new_width, new_height = new_width_height(image, rotation_angle+90)
-        image = image.resize((new_width, new_height), Image.LANCZOS)
-        image = image.rotate(rotation_angle + 90)
-        print(image.size)
-        rotation_angle += 90
-        # reset image if angle is a multiple of 360 degrees
-        if rotation_angle % 360 == 0:
-            rotation_angle = 0
-            image = Image.open(file_path)
-            new_width, new_height = new_width_height(image, rotation_angle)
-            image = image.resize((new_width, new_height), Image.LANCZOS)
-        
-        rotated_image = image
+        image = Image.open(temp_path).rotate(90, expand=True)
+        image.save(temp_path)
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter).rotate(90, expand=True)
+            image.save(temp_filter)
+            image = get_temp(withFilter=True)
+        else:
+            image = get_temp()
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
-        photo_image = ImageTk.PhotoImage(rotated_image)
-        print(photo_image.width(), photo_image.height())
-        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=photo_image)
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
     except:
         showerror(
             title="Rotate Image Error", message="Please select an image to rotate!"
         )
 
-
-# function for applying filters to the opened image file
-def apply_filter(filter):
-    global image, photo_image
+def restore_image():
     try:
-        # check if the image has been flipped or rotated
-        if is_flipped:
-            # flip the original image left and right
-            flipped_image = Image.open(file_path).transpose(Image.FLIP_LEFT_RIGHT)
-            # rotate the flipped image
-            rotated_image = flipped_image.rotate(rotation_angle)
-            # apply the filter to the rotated image
-            if filter == "Black and White":
-                rotated_image = ImageOps.grayscale(rotated_image)
-            elif filter == "Blur":
-                rotated_image = rotated_image.filter(ImageFilter.BLUR)
-
-            elif filter == "Contour":
-                rotated_image = rotated_image.filter(ImageFilter.CONTOUR)
-
-            elif filter == "Detail":
-                rotated_image = rotated_image.filter(ImageFilter.DETAIL)
-
-            elif filter == "Emboss":
-                rotated_image = rotated_image.filter(ImageFilter.EMBOSS)
-
-            elif filter == "Edge Enhance":
-                rotated_image = rotated_image.filter(ImageFilter.EDGE_ENHANCE)
-
-            elif filter == "Sharpen":
-                rotated_image = rotated_image.filter(ImageFilter.SHARPEN)
-
-            elif filter == "Smooth":
-                rotated_image = rotated_image.filter(ImageFilter.SMOOTH)
-
-            else:
-                rotated_image = (
-                    Image.open(file_path)
-                    .transpose(Image.FLIP_LEFT_RIGHT)
-                    .rotate(rotation_angle)
-                )
-
-        elif rotation_angle != 0:
-            # rotate the original image
-            rotated_image = Image.open(file_path).rotate(rotation_angle)
-            # apply the filter to the rotated image
-            if filter == "Black and White":
-                rotated_image = ImageOps.grayscale(rotated_image)
-
-            elif filter == "Blur":
-                rotated_image = rotated_image.filter(ImageFilter.BLUR)
-
-            elif filter == "Contour":
-                rotated_image = rotated_image.filter(ImageFilter.CONTOUR)
-
-            elif filter == "Detail":
-                rotated_image = rotated_image.filter(ImageFilter.DETAIL)
-
-            elif filter == "Emboss":
-                rotated_image = rotated_image.filter(ImageFilter.EMBOSS)
-
-            elif filter == "Edge Enhance":
-                rotated_image = rotated_image.filter(ImageFilter.EDGE_ENHANCE)
-
-            elif filter == "Sharpen":
-                rotated_image = rotated_image.filter(ImageFilter.SHARPEN)
-
-            elif filter == "Smooth":
-                rotated_image = rotated_image.filter(ImageFilter.SMOOTH)
-
-            else:
-                rotated_image = Image.open(file_path).rotate(rotation_angle)
-
-        else:
-            # apply the filter to the original image
-            image = Image.open(file_path)
-            if filter == "Black and White":
-                image = ImageOps.grayscale(image)
-
-            elif filter == "Blur":
-                image = image.filter(ImageFilter.BLUR)
-
-            elif filter == "Sharpen":
-                image = image.filter(ImageFilter.SHARPEN)
-
-            elif filter == "Smooth":
-                image = image.filter(ImageFilter.SMOOTH)
-
-            elif filter == "Emboss":
-                image = image.filter(ImageFilter.EMBOSS)
-
-            elif filter == "Detail":
-                image = image.filter(ImageFilter.DETAIL)
-
-            elif filter == "Edge Enhance":
-                image = image.filter(ImageFilter.EDGE_ENHANCE)
-
-            elif filter == "Contour":
-                image = image.filter(ImageFilter.CONTOUR)
-
-            rotated_image = image
-
-        # resize the rotated/flipped image to fit the canvas
-        new_width = int((WIDTH / 2))
-        rotated_image = rotated_image.resize((new_width, HEIGHT), Image.LANCZOS)
+        global image, file_path
+        image = Image.open(file_path)
+        image.save(temp_path)
+        image = get_temp()
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
-        photo_image = ImageTk.PhotoImage(rotated_image)
-        canvas.create_image(0, 0, anchor="nw", image=photo_image)
-
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+        if os.path.exists(temp_filter):
+            os.remove(temp_filter)
     except:
-        showerror(title="Error", message="Please select an image first!")
-
-
-# function for drawing lines on the opened image
-def draw(event):
-    global file_path
-    if file_path:
-        x1, y1 = (event.x - pen_size), (event.y - pen_size)
-        x2, y2 = (event.x + pen_size), (event.y + pen_size)
-        canvas.create_oval(
-            x1, y1, x2, y2, fill=pen_color, outline="", width=pen_size, tags="oval"
+        showerror(
+            title="Restore Image Error", message="Please select an image to restore!"
         )
-
-
-# function for changing the pen color
-def color_image():
-    global pen_color
-    pen_color = colorchooser.askcolor(title="Select Pen Color")[1]
-
-
-# function for erasing lines on the opened image
-def erase_image():
-    global file_path
-    if file_path:
-        canvas.delete("oval")
-
 
 def save_image():
-    global file_path, is_flipped, rotation_angle
+    global file_path
 
     if file_path:
-        # create a new PIL Image object from the canvas
-        image = ImageGrab.grab(
-            bbox=(
-                canvas.winfo_rootx(),
-                canvas.winfo_rooty(),
-                canvas.winfo_rootx() + canvas.winfo_width(),
-                canvas.winfo_rooty() + canvas.winfo_height(),
-            )
-        )
-
-        # check if the image has been flipped or rotated
-        if is_flipped or rotation_angle % 360 != 0:
-            # Resize and rotate the image
-            new_width = int((WIDTH / 2))
-            image = image.resize((new_width, HEIGHT), Image.LANCZOS)
-            if is_flipped:
-                image = image.transpose(Image.FLIP_LEFT_RIGHT)
-            if rotation_angle % 360 != 0:
-                image = image.rotate(rotation_angle)
-
-            # update the file path to include the modifications in the file name
-            file_path = file_path.split(".")[0] + "_mod.jpg"
-
-        # apply any filters to the image before saving
-        filter = filter_combobox.get()
-        if filter:
-            if filter == "Black and White":
-                image = ImageOps.grayscale(image)
-
-            elif filter == "Blur":
-                image = image.filter(ImageFilter.BLUR)
-
-            elif filter == "Sharpen":
-                image = image.filter(ImageFilter.SHARPEN)
-
-            elif filter == "Smooth":
-                image = image.filter(ImageFilter.SMOOTH)
-
-            elif filter == "Emboss":
-                image = image.filter(ImageFilter.EMBOSS)
-
-            elif filter == "Detail":
-                image = image.filter(ImageFilter.DETAIL)
-
-            elif filter == "Edge Enhance":
-                image = image.filter(ImageFilter.EDGE_ENHANCE)
-
-            elif filter == "Contour":
-                image = image.filter(ImageFilter.CONTOUR)
-
-            # update the file path to include the filter in the file name
-            file_path = (
-                file_path.split(".")[0]
-                + "_"
-                + filter.lower().replace(" ", "_")
-                + ".jpg"
-            )
-
         # open file dialog to select save location and file type
-        file_path = filedialog.asksaveasfilename(defaultextension=".jpg")
-
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter)
+        else:
+            image = Image.open(temp_path)
+        file_path = filedialog.asksaveasfilename(defaultextension=".png")
         if file_path:
             if askyesno(title="Save Image", message="Do you want to save this image?"):
                 # save the image to a file
                 image.save(file_path)
+
+# function for applying filters to the opened image file
+def apply_filter(filter):
+    global image
+    image = Image.open(temp_path)
+    image.save(temp_filter)
+    image = Image.open(temp_filter)
+    try:
+        # apply the filter to the original image
+        if filter == "Black and White":
+            image = ImageOps.grayscale(image)
+
+        elif filter == "Blur":
+            image = image.filter(ImageFilter.BLUR)
+
+        elif filter == "Sharpen":
+            image = image.filter(ImageFilter.SHARPEN)
+
+        elif filter == "Smooth":
+            image = image.filter(ImageFilter.SMOOTH)
+
+        elif filter == "Emboss":
+            image = image.filter(ImageFilter.EMBOSS)
+
+        elif filter == "Detail":
+            image = image.filter(ImageFilter.DETAIL)
+
+        elif filter == "Edge Enhance":
+            image = image.filter(ImageFilter.EDGE_ENHANCE)
+
+        elif filter == "Contour":
+            image = image.filter(ImageFilter.CONTOUR)
+
+        image.save(temp_filter)
+        image = get_temp(withFilter=True)
+        # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+
+    except:
+        showerror(title="Error", message="Please select an image first!")
 
 
 root = ttk.Window(themename="cosmo")
@@ -327,8 +177,6 @@ left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
 # the right canvas for displaying the image
 canvas = ttk.Canvas(root, width=RF_WIDTH, relief="solid", border=1)
 canvas.pack(fill="both", expand=True, padx=5, pady=5)
-# binding the Canvas to the B1-Motion event
-canvas.bind("<B1-Motion>", draw)
 
 # label
 filter_label = ttk.Label(left_frame, text="Select Filter:", background="white")
@@ -355,18 +203,17 @@ filter_combobox.bind(
     "<<ComboboxSelected>>", lambda event: apply_filter(filter_combobox.get())
 )
 
-options = ["add", "flip", "rotate", "color", "erase", "save"]
+options = ["add", "flip", "rotate", "save", "restore"]
 options_label = [
     "Open Image",
     "Flip Image",
     "Rotate Image",
-    "Change Pen Color",
-    "Erase Lines",
     "Save Image",
+    "Restore Image"
 ]
 
 button_icon = [None] * 6
-for i in range(6):
+for i in range(len(options)):
     button_icon[i] = ttk.PhotoImage(file=options[i] + ".png").subsample(12, 12)
     image_button = ttk.Button(
         left_frame,
