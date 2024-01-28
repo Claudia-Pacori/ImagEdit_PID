@@ -6,8 +6,9 @@ from PIL import Image, ImageOps, ImageTk, ImageFilter, ImageGrab
 
 
 # defining global variables
-WIDTH = 750
-HEIGHT = 560
+LF_WIDTH = 250
+RF_WIDTH = 700
+HEIGHT = 500
 file_path = ""
 pen_size = 3
 pen_color = "black"
@@ -21,11 +22,20 @@ def open_image():
     if file_path:
         global image, photo_image
         image = Image.open(file_path)
-        new_width = int((WIDTH / 2))
-        image = image.resize((new_width, HEIGHT), Image.LANCZOS)
+        image_aspect_ratio = (image.size[1] / float(image.size[0]))
+        if image_aspect_ratio > 1:
+            # vertical image
+            new_height = int((HEIGHT))
+            new_width = int((new_height / image_aspect_ratio))
+        else:
+            # horizontal image
+            new_width = int((RF_WIDTH))
+            new_height = int((new_width * image_aspect_ratio))
+        
+        image = image.resize((new_width, new_height), Image.LANCZOS)
             
         image = ImageTk.PhotoImage(image)
-        canvas.create_image(0, 0, anchor="nw", image=image)
+        canvas.create_image(RF_WIDTH/2, HEIGHT/2, image=image)
         
 
 # a global variable for checking the flip state of the image
@@ -283,18 +293,18 @@ def save_image():
 
 root = ttk.Window(themename="cosmo")
 root.title("Image Editor")
-root.geometry("510x580+300+110")
+root.geometry(f'{LF_WIDTH + RF_WIDTH + 10}x{HEIGHT + 10}')
 root.resizable(0, 0)
 icon = ttk.PhotoImage(file='icon.png')
 root.iconphoto(False, icon)
 
 # the left frame to contain the 4 buttons
-left_frame = ttk.Frame(root, width=200, height=600)
-left_frame.pack(side="left", fill="y")
+left_frame = ttk.Frame(root, width=LF_WIDTH, relief="solid", border=1)
+left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
 
 # the right canvas for displaying the image
-canvas = ttk.Canvas(root, width=WIDTH, height=HEIGHT)
-canvas.pack()
+canvas = ttk.Canvas(root, width=RF_WIDTH, relief="solid", border=1)
+canvas.pack(fill="both", expand=True, padx=5, pady=5)
 # binding the Canvas to the B1-Motion event
 canvas.bind("<B1-Motion>", draw)
 
