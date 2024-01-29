@@ -116,19 +116,19 @@ def save_image():
             image = Image.open(temp_filter)
         else:
             image = Image.open(temp_path)
-        file_path = filedialog.asksaveasfilename(defaultextension=".png")
-        if file_path:
+        file_path_save = filedialog.asksaveasfilename(defaultextension=".png")
+        if file_path_save:
             if askyesno(title="Save Image", message="Do you want to save this image?"):
                 # save the image to a file
-                image.save(file_path)
+                image.save(file_path_save)
 
 # function for applying filters to the opened image file
 def apply_filter(filter):
     global image
-    image = Image.open(temp_path)
-    image.save(temp_filter)
-    image = Image.open(temp_filter)
     try:
+        image = Image.open(temp_path)
+        image.save(temp_filter)
+        image = Image.open(temp_filter)
         # apply the filter to the original image
         if filter == "Black and White":
             image = ImageOps.grayscale(image)
@@ -162,6 +162,10 @@ def apply_filter(filter):
     except:
         showerror(title="Error", message="Please select an image first!")
 
+if os.path.exists(temp_path):
+    os.remove(temp_path)
+if os.path.exists(temp_filter):
+    os.remove(temp_filter)
 
 root = ttk.Window(themename="cosmo")
 root.title("Image Editor")
