@@ -11,8 +11,8 @@ LF_WIDTH = 250
 RF_WIDTH = 700
 HEIGHT = 500
 file_path = ""
-temp_path = "temp.png"
-temp_filter = "temp_filter.png"
+temp_path = "temp/temp.png"
+temp_filter = "temp/temp_filter.png"
 pen_size = 3
 pen_color = "black"
 
@@ -175,7 +175,7 @@ root = ttk.Window(themename="cosmo")
 root.title("Image Editor")
 root.geometry(f"{LF_WIDTH + RF_WIDTH + 10}x{HEIGHT + 10}")
 root.resizable(0, 0)
-icon = ttk.PhotoImage(file="icon.png")
+icon = ttk.PhotoImage(file="assets/icon.png")
 root.iconphoto(False, icon)
 
 # the left frame to contain the 4 buttons
@@ -222,7 +222,7 @@ options_label = [
 
 button_icon = [None] * 6
 for i in range(len(options)):
-    button_icon[i] = ttk.PhotoImage(file=options[i] + ".png").subsample(12, 12)
+    button_icon[i] = ttk.PhotoImage(file="assets/" + options[i] + ".png").subsample(12, 12)
     image_button = ttk.Button(
         left_frame,
         image=button_icon[i],
