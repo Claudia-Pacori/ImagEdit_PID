@@ -1,126 +1,237 @@
-import sys
-import cv2
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget, QFileDialog, QFrame, QHBoxLayout, QSlider
-from PyQt5.QtGui import QImage, QPixmap
-from PyQt5.QtCore import Qt, QTimer
+import ttkbootstrap as ttk
+from tkinter import filedialog
+from tkinter.messagebox import showerror, askyesno
+from tkinter import colorchooser
+from PIL import Image, ImageOps, ImageTk, ImageFilter, ImageGrab
+import os
 
-class ImageEditor(QMainWindow):
-    def __init__(self):
-        super(ImageEditor, self).__init__()
 
-        self.image_label = QLabel(self)
-        self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setScaledContents(True)
+# defining global variables
+LF_WIDTH = 250
+RF_WIDTH = 700
+HEIGHT = 500
+file_path = ""
+temp_path = "temp.png"
+temp_filter = "temp_filter.png"
+pen_size = 3
+pen_color = "black"
 
-        self.capture_button = QPushButton('Capturar desde Webcam', self)
-        self.load_image_button = QPushButton('Cargar Imagen', self)
-        self.load_video_button = QPushButton('Cargar Video', self)
 
-        self.capture_image_button = QPushButton('Capturar Imagen', self)
-        self.pause_button = QPushButton('Pausar', self)
+def get_temp(withFilter=False):
+    if withFilter:
+        image = Image.open(temp_filter)
+    else:
+        image = Image.open(temp_path)
+    image_aspect_ratio = image.size[1] / float(image.size[0])
+    if image_aspect_ratio > 1:
+        # vertical image
+        new_height = int((HEIGHT))
+        new_width = int((new_height / image_aspect_ratio))
+    else:
+        # horizontal image
+        new_width = int((RF_WIDTH))
+        new_height = int((new_width * image_aspect_ratio))
+    image = image.resize((new_width, new_height), Image.LANCZOS)
+    image = ImageTk.PhotoImage(image)
+    return image
 
-        self.video_slider = QSlider(Qt.Horizontal, self)
-        self.video_slider.setEnabled(False)
 
-        self.frame = QFrame(self)
-        self.layout = QVBoxLayout(self.frame)
-        self.layout.addWidget(self.capture_button)
-        self.layout.addWidget(self.load_image_button)
-        self.layout.addWidget(self.load_video_button)
-        self.layout.addWidget(self.capture_image_button)
-        self.layout.addWidget(self.pause_button)
-        self.layout.addWidget(self.video_slider)
-        self.layout.addWidget(self.image_label)
+# function to open the image file
+def add_image():
+    global file_path
+    file_path = filedialog.askopenfilename(
+        title="Open Image File",
+        filetypes=[("Image Files", "*.jpg;*.jpeg;*.png;*.gif;*.bmp")],
+    )
+    if file_path:
+        global image
+        image = Image.open(file_path)
+        image.save(temp_path)
+        image = get_temp()
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+    if os.path.exists(temp_filter):
+        os.remove(temp_filter)
 
-        self.central_widget = QWidget(self)
-        self.setCentralWidget(self.central_widget)
-        self.central_layout = QVBoxLayout(self.central_widget)
-        self.central_layout.addWidget(self.frame)
 
-        self.capture_button.clicked.connect(self.capture_from_webcam)
-        self.load_image_button.clicked.connect(self.load_image)
-        self.load_video_button.clicked.connect(self.load_video)
-        self.capture_image_button.clicked.connect(self.capture_image)
-        self.pause_button.clicked.connect(self.toggle_pause)
-        self.video_slider.valueChanged.connect(self.update_frame_position)
+def flip_image():
+    try:
+        global image
+        image = Image.open(temp_path).transpose(Image.FLIP_LEFT_RIGHT)
+        image.save(temp_path)
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter).transpose(Image.FLIP_LEFT_RIGHT)
+            image.save(temp_filter)
+            image = get_temp(withFilter=True)
+        else:
+            image = get_temp()
+        # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
-        self.video_capture = None
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_frame)
-        self.paused = False
-        self.image_captured = False
+    except:
+        showerror(title="Flip Image Error", message="Please select an image to flip!")
 
-    def capture_from_webcam(self):
-        self.video_capture = cv2.VideoCapture(0)
-        self.timer.start(30)
-        self.video_slider.setEnabled(False)
 
-    def load_image(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Cargar Imagen", "", "Images (*.png *.jpg *.bmp)")
-        if file_path:
-            self.video_capture = None
-            self.timer.stop()
-            image = cv2.imread(file_path)
-            self.display_image(image)
+# global variable for tracking rotation angle
+def rotate_image():
+    try:
+        global image
+        # open the image and rotate it
+        image = Image.open(temp_path).rotate(90, expand=True)
+        image.save(temp_path)
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter).rotate(90, expand=True)
+            image.save(temp_filter)
+            image = get_temp(withFilter=True)
+        else:
+            image = get_temp()
+        # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
-    def load_video(self):
-        file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Cargar Video", "", "Videos (*.mp4 *.avi)")
-        if file_path:
-            self.video_capture = cv2.VideoCapture(file_path)
-            self.timer.start(30)
-            self.video_slider.setEnabled(True)
+    except:
+        showerror(
+            title="Rotate Image Error", message="Please select an image to rotate!"
+        )
 
-    def update_frame(self):
-        ret, frame = self.video_capture.read()
-        if ret and not self.paused:
-            frame = self.resize_image(frame)
-            self.display_image(frame)
-            current_frame = int(self.video_capture.get(cv2.CAP_PROP_POS_FRAMES))
-            total_frames = int(self.video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
-            slider_value = int(current_frame * 100 / total_frames)
-            self.video_slider.setValue(slider_value)
 
-    def display_image(self, image):
-        height, width, channel = image.shape
-        bytes_per_line = 3 * width
-        q_image = QImage(image.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
-        pixmap = QPixmap.fromImage(q_image)
-        self.image_label.setPixmap(pixmap)
+def restore_image():
+    try:
+        global image, file_path
+        image = Image.open(file_path)
+        image.save(temp_path)
+        image = get_temp()
+        # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+        if os.path.exists(temp_filter):
+            os.remove(temp_filter)
+    except:
+        showerror(
+            title="Restore Image Error", message="Please select an image to restore!"
+        )
 
-    def capture_image(self):
-        if self.video_capture is not None and self.paused and not self.image_captured:
-            ret, frame = self.video_capture.read()
-            if ret:
-                frame = self.resize_image(frame)
-                cv2.imwrite("captured_image.png", frame)
-                self.image_captured = True
 
-    def toggle_pause(self):
-        self.paused = not self.paused
-        if not self.paused:
-            self.image_captured = False
+def save_image():
+    global file_path
 
-    def update_frame_position(self, value):
-        if self.video_capture is not None:
-            total_frames = int(self.video_capture.get(cv2.CAP_PROP_FRAME_COUNT))
-            target_frame = int(value * total_frames / 100)
-            self.video_capture.set(cv2.CAP_PROP_POS_FRAMES, target_frame)
-            self.update_frame()
+    if file_path:
+        # open file dialog to select save location and file type
+        if os.path.exists(temp_filter):
+            image = Image.open(temp_filter)
+        else:
+            image = Image.open(temp_path)
+        file_path_save = filedialog.asksaveasfilename(defaultextension=".png")
+        if file_path_save:
+            if askyesno(title="Save Image", message="Do you want to save this image?"):
+                # save the image to a file
+                image.save(file_path_save)
 
-    def resize_image(self, image, max_width=800, max_height=600):
-        height, width, _ = image.shape
-        if width > max_width or height > max_height:
-            ratio = min(max_width / width, max_height / height)
-            new_width = int(width * ratio)
-            new_height = int(height * ratio)
-            resized_image = cv2.resize(image, (new_width, new_height))
-            return resized_image
-        return image
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    editor = ImageEditor()
-    editor.show()
-    sys.exit(app.exec_())
+# function for applying filters to the opened image file
+def apply_filter(filter):
+    global image
+    try:
+        image = Image.open(temp_path)
+        image.save(temp_filter)
+        image = Image.open(temp_filter)
+        # apply the filter to the original image
+        if filter == "Black and White":
+            image = ImageOps.grayscale(image)
+
+        elif filter == "Blur":
+            image = image.filter(ImageFilter.BLUR)
+
+        elif filter == "Sharpen":
+            image = image.filter(ImageFilter.SHARPEN)
+
+        elif filter == "Smooth":
+            image = image.filter(ImageFilter.SMOOTH)
+
+        elif filter == "Emboss":
+            image = image.filter(ImageFilter.EMBOSS)
+
+        elif filter == "Detail":
+            image = image.filter(ImageFilter.DETAIL)
+
+        elif filter == "Edge Enhance":
+            image = image.filter(ImageFilter.EDGE_ENHANCE)
+
+        elif filter == "Contour":
+            image = image.filter(ImageFilter.CONTOUR)
+
+        image.save(temp_filter)
+        image = get_temp(withFilter=True)
+        # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
+        canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
+
+    except:
+        showerror(title="Error", message="Please select an image first!")
+
+
+if os.path.exists(temp_path):
+    os.remove(temp_path)
+if os.path.exists(temp_filter):
+    os.remove(temp_filter)
+
+root = ttk.Window(themename="cosmo")
+root.title("Image Editor")
+root.geometry(f"{LF_WIDTH + RF_WIDTH + 10}x{HEIGHT + 10}")
+root.resizable(0, 0)
+icon = ttk.PhotoImage(file="icon.png")
+root.iconphoto(False, icon)
+
+# the left frame to contain the 4 buttons
+left_frame = ttk.Frame(root, width=LF_WIDTH, relief="solid", border=1)
+left_frame.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+
+# the right canvas for displaying the image
+canvas = ttk.Canvas(root, width=RF_WIDTH, relief="solid", border=1)
+canvas.pack(fill="both", expand=True, padx=5, pady=5)
+
+# label
+filter_label = ttk.Label(left_frame, text="Select Filter:", background="white")
+filter_label.grid(row=0, column=0, padx=10, pady=5)
+
+# a list of filters
+image_filters = [
+    "Contour",
+    "Black and White",
+    "Blur",
+    "Detail",
+    "Emboss",
+    "Edge Enhance",
+    "Sharpen",
+    "Smooth",
+]
+
+# combobox for the filters
+filter_combobox = ttk.Combobox(left_frame, values=image_filters, width=15)
+filter_combobox.grid(row=0, column=1, padx=10, pady=5)
+
+# binding the apply_filter function to the combobox
+filter_combobox.bind(
+    "<<ComboboxSelected>>", lambda event: apply_filter(filter_combobox.get())
+)
+
+options = ["add", "flip", "rotate", "save", "restore"]
+options_label = [
+    "Open Image",
+    "Flip Image",
+    "Rotate Image",
+    "Save Image",
+    "Restore Image",
+]
+
+button_icon = [None] * 6
+for i in range(len(options)):
+    button_icon[i] = ttk.PhotoImage(file=options[i] + ".png").subsample(12, 12)
+    image_button = ttk.Button(
+        left_frame,
+        image=button_icon[i],
+        bootstyle="light",
+        command=eval(options[i] + "_image"),
+    )
+    button_label = ttk.Label(left_frame, text=options_label[i], background="white")
+
+    image_button.grid(row=i + 1, column=0, padx=10, pady=5)
+    button_label.grid(row=i + 1, column=1, padx=10, pady=5, sticky="w")
+
+root.mainloop()

@@ -1,5 +1,3 @@
 .venv
-version_ttk/temp.png
-version_ttk/temp_filter.png
-version_ttk/output.png
-version_ttk/*.jpg
+temp
+images
