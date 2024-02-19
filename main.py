@@ -92,6 +92,9 @@ class App(ctk.CTk):
                 case _:
                     self.image_np = self.original_np.copy()
 
+            if self.image_np.shape[2] == 4:
+                self.image_np = self.image_np[:, :, :3]
+
             self.image = Image.fromarray(self.image_np)
             self.place_image(self.image_output, self.image)
 
@@ -146,7 +149,7 @@ class App(ctk.CTk):
             self.image_tk_out = image_tk
 
     def export_image(self, path, name, file):
-        export_string = f"{path}/{name}.{file}"
+        export_string = f"{file}/{path}.{name}"
         self.image.save(export_string)
 
 
