@@ -3,36 +3,45 @@ import cv2, time
 
 
 def dilate_image(input_image):
-    # Kernel
-    kernel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]], dtype=np.uint8)
+    height, width = input_image.shape
+    padded_image = [[0] * (width + 2)]  # Primera fila de ceros
+    padded_image.extend([[0] + list(row) + [0] for row in input_image])  # Añadir ceros a cada fila
+    padded_image.append([0] * (width + 2))  # Última fila de ceros
 
-    # Dilatación
+    kernel = np.ones((3, 3), np.uint8)
+
+    # Dilatacion
     output_image = np.zeros_like(input_image)
-    for i in range(2, input_image.shape[0] - 2):
-        for j in range(2, input_image.shape[1] - 2):
-            output_image[i, j] = np.max(
-                input_image[i - 1 : i + 2, j - 1 : j + 2] * kernel
-            )
+    for i in range(1, height + 1):
+        for j in range(1, width + 1):
+            # Por ventanas
+            neighbors = [padded_image[i + k][j + l] * kernel[k, l] for k in range(-1, 2) for l in range(-1, 2)]
+            output_image[i - 1, j - 1] = max(neighbors)
+
+    #print(input_image.shape, output_image.shape)
     return output_image
 
-if __name__ == "__main__":
-    input_image_path = "C://Users//Claudia//Documents//01 UTEC stuff//PID//Proyecto//ImagEdit_PID//temp//images//test.jpg"
-    output_dilated_image_path = "output_dilated_image.png"
 
-    # Escala de grises
+def dilate_image_opencv(input_image):
+    kernel = np.ones((3, 3), np.uint8)
+    dilated_image = cv2.dilate(input_image, kernel, iterations=1)
+
+    return dilated_image
+
+if __name__ == "__main__":
+    input_image_path = "temp/images/test.jpg"
     img = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
 
+    # Dilatacion manual
     start_time = time.time()
-
-    # Uso de la función
     dilated_image = dilate_image(img)
-
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Dilatacion completada en {execution_time:.5f} segundos")
-
-    # Guardar imagen
-    cv2.imwrite(output_dilated_image_path, dilated_image)
-    cv2.imshow("Dilated Image", dilated_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    
+    # Dilatacion con opencv
+    start_time = time.time()
+    dilated_image = dilate_image_opencv(img)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Dilatacion completada en {execution_time:.5f} segundos")
