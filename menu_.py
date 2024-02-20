@@ -21,7 +21,7 @@ class EffectsFrame(ctk.CTkFrame):
         SliderGroupPanel(
             self,
             "Aclarar",
-            (parent.effect_vars["gamma"], "Gamma", 0.00, 1.00),
+            (parent.effect_vars["gamma"], "Alpha", 0.00, 1.00),
         )
         SliderGroupPanel(
             self,

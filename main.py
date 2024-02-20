@@ -48,27 +48,17 @@ class App(ctk.CTk):
         for var in self.effect_vars.values():
             var.trace_add("write", self.manipulate_image)
 
-    # def confirm_manipulation(self, *args):
-    #     if self.restore.get():
-    #         if self.restore_finished.get():
-    #             self.image = self.original.copy()
-    #             self.place_image(self.image_output, self.image)
-    #             self.restore.set(False)
-    #             self.restore_finished.set(False)
-    #         return
-    #     else:
-    #         self.manipulate_image()
-
     def manipulate_image(self, *args):
         try:
             self.image_np = self.original_np.copy()
+            self.image_bw_np = self.original_bw_np.copy()
+
             match self.last_group:
                 case "Aclarar":
-                    self.image_np = aclarar.ajuste_gamma(
-                        image=self.image_np, gamma=self.effect_vars["gamma"].get()
+                    self.image_np = aclarar.apply_homomorphic_filter(
+                        image=self.image_bw_np, alpha=self.effect_vars["gamma"].get()
                     )
                 case "Bordes":
-                    self.image_bw_np = self.original_bw_np.copy()
                     self.image_np = bordes.gaussian_highpass_filter(
                         image=self.image_bw_np,
                         kernel_size=self.effect_vars["kernel"].get(),
@@ -92,7 +82,7 @@ class App(ctk.CTk):
                 case _:
                     self.image_np = self.original_np.copy()
 
-            if self.image_np.shape[2] == 4:
+            if len(self.image_np.shape) == 3 and self.image_np.shape[2] == 4:
                 self.image_np = self.image_np[:, :, :3]
 
             self.image = Image.fromarray(self.image_np)

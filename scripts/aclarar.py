@@ -10,10 +10,11 @@ def ifft2(image):
 
 def apply_homomorphic_filter(image, alpha=0.5, cutoff=50):
     # Convertir la imagen a escala de grises y luego a punto flotante
-    gray_image = np.float32(image)
+    # gray_image = np.float32(image)
     
     # Aplicar la transformada logarítmica para aumentar el rango dinámico
-    log_image = np.log1p(gray_image)
+    # log_image = np.log1p(gray_image)
+    log_image = np.log1p(image)
     
     # Aplicar la transformada de Fourier bidimensional
     fft_image = fft2(log_image)
