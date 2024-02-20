@@ -17,8 +17,8 @@ def erode_image(input_image):
 
 
 if __name__ == "__main__":
-    input_image_path = "temp.png"
-    output_eroded_image_path = "output_dilated_image.png"
+    input_image_path = "C://Users//Claudia//Documents//01 UTEC stuff//PID//Proyecto//ImagEdit_PID//temp//images//test.jpg"
+    output_eroded_image_path = "output_eroded_image.png"
 
     # Escala de grises
     img = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # Uso de la función
-    eroded_image = erode_image(input_image_path)
+    eroded_image = erode_image(img)
 
     end_time = time.time()
     execution_time = end_time - start_time
