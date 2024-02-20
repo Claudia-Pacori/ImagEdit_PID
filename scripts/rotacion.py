@@ -38,65 +38,47 @@ def get_rotation_matrix(angle_pitch, angle_yaw, angle_roll):
     )
 
 
-def get_dimensions(rotation_matrix, width, height):
-    corners = np.array(
-        [[0, 0], [0, height], [width, height], [width, 0]], dtype=np.float32
-    )
-    rotated_corners = (
-        np.dot(rotation_matrix[:2, :2], corners.T).T + rotation_matrix[:2, 2]
-    )
-
-    rotated_width = int(
-        np.ceil(max(rotated_corners[:, 0]) - min(rotated_corners[:, 0]))
-    )
-    rotated_height = int(
-        np.ceil(max(rotated_corners[:, 1]) - min(rotated_corners[:, 1]))
-    )
-
-    return rotated_width, rotated_height
-
-
 def rotate_image(image, angle_roll, angle_pitch, angle_yaw):
     height, width = image.shape[:2]
-    if image.shape[2] == 4:
-        image = image[:, :, :3]
+    center = (width // 2, height // 2)
 
     # Matriz de rotación
     rotation_matrix = get_rotation_matrix(angle_pitch, angle_yaw, angle_roll)
 
-    # Dimensiones de imagen rotada
-    rotated_width, rotated_height = get_dimensions(rotation_matrix, width, height)
+    # Coordenadas de los píxeles en la imagen original
+    y_coords, x_coords = np.mgrid[0:height, 0:width]
+    coords = np.stack((x_coords - center[0], y_coords - center[1], np.zeros_like(x_coords)), axis=-1)
+    
+    # Aplicar rotacion y ajustar centro
+    rotated_coords = np.dot(coords, rotation_matrix.T).astype(int)
+    rotated_x_coords = rotated_coords[:, :, 0] + center[0]
+    rotated_y_coords = rotated_coords[:, :, 1] + center[1]
 
-    # Crear imagen
-    rotated_image = np.zeros((rotated_height, rotated_width, 3), dtype=np.uint8)
-    y_coords, x_coords = np.mgrid[0:height, 0:width]  # Coordenadas originales
-    coords = np.vstack(
-        (x_coords.flatten(), y_coords.flatten(), np.ones(height * width))
-    )
+    # Crear imagen rotada
+    rotated_image = np.zeros_like(image)
+    mask = (rotated_x_coords >= 0) & (rotated_x_coords < width) & (rotated_y_coords >= 0) & (rotated_y_coords < height)
+    rotated_image[rotated_y_coords[mask], rotated_x_coords[mask]] = image[y_coords[mask], x_coords[mask]]
 
-    new_coords = np.dot(rotation_matrix, coords)  # Rotacion
-    new_coords = new_coords[:2, :].astype(int)
+    return rotated_image
 
-    mask = (
-        (new_coords[0, :] >= 0)
-        & (new_coords[0, :] < rotated_image.shape[1])
-        & (new_coords[1, :] >= 0)
-        & (new_coords[1, :] < rotated_image.shape[0])
-    )
+def rotate_image_opencv(image, angle_roll, angle_pitch, angle_yaw):
+    rotation_matrix = get_rotation_matrix(angle_pitch, angle_yaw, angle_roll)
+    rows, cols = image.shape[:2]
+    center = (cols // 2, rows // 2)
 
-    rotated_coords = np.round(new_coords[:, mask]).astype(int)
-    original_coords = np.round(coords[:2, mask]).astype(int)
+    # Ajustar el centro como punto de referencia
+    rotation_matrix[0, 2] += center[0] - center[0] * rotation_matrix[0, 0] - center[1] * rotation_matrix[0, 1]
+    rotation_matrix[1, 2] += center[1] - center[0] * rotation_matrix[1, 0] - center[1] * rotation_matrix[1, 1]
 
-    # Ajustar dimensiones
-    rotated_image[rotated_coords[1, :], rotated_coords[0, :]] = image[
-        original_coords[1, :], original_coords[0, :]
-    ]
+    # Aplicar la rotación respecto al centro
+    rotated_image = cv2.warpAffine(image, rotation_matrix[:2], (cols, rows), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
 
     return rotated_image
 
 
+
 if __name__ == "__main__":
-    input_image_path = "D:\DocumentosUTEC\Books\Procesamiento de Imagenes Digitales\ImagEdit_PID\\temp\images\\test.png"
+    input_image_path = "C://Users//Claudia//Documents//01 UTEC stuff//PID//Proyecto//ImagEdit_PID//temp//images//test.jpg"
     output_rotated_image_path = "output_rotated_image.png"
 
     image = cv2.imread(input_image_path)
@@ -104,14 +86,25 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # Uso de la función
-    rotated_image = rotate_image(image, 60, 60, 30)
+    rotated_image = rotate_image(image, 120, 60, 122)
 
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Rotacion completada en {execution_time:.5f} segundos")
+    cv2.imwrite(output_rotated_image_path, rotated_image)
+    cv2.imshow("Rotated Image", rotated_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    start_time = time.time()
+    rotated_image2 = rotate_image_opencv(image, 120, 60, 122)
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Rotacion completada en {execution_time:.5f} segundos")
 
     # Guardar imagen
-    cv2.imwrite(output_rotated_image_path, rotated_image)
-    cv2.imshow("Rotated Image", rotated_image)
+    cv2.imwrite(output_rotated_image_path, rotated_image2)
+    cv2.imshow("Rotated Image", rotated_image2)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+

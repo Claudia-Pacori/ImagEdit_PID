@@ -16,7 +16,7 @@ def dilate_image(input_image):
     return output_image
 
 if __name__ == "__main__":
-    input_image_path = "temp.png"
+    input_image_path = "C://Users//Claudia//Documents//01 UTEC stuff//PID//Proyecto//ImagEdit_PID//temp//images//test.jpg"
     output_dilated_image_path = "output_dilated_image.png"
 
     # Escala de grises
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     start_time = time.time()
 
     # Uso de la función
-    dilated_image = dilate_image(input_image_path)
+    dilated_image = dilate_image(img)
 
     end_time = time.time()
     execution_time = end_time - start_time
