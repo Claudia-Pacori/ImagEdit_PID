@@ -16,7 +16,6 @@ class Menu(ctk.CTkTabview):
         self.menu_funcs = {
             "OpenImage": parent.import_image,
             "ExportImage": parent.export_image,
-            "LastUsedGroup": parent.last_used_group,
         }
         self.effect_vars = parent.effect_vars
         self.last_group = parent.last_group

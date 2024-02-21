@@ -40,16 +40,17 @@ class OpenWebcamButton(ctk.CTkButton):
 
 
 class RestoreButton(ctk.CTkButton):
-    def __init__(self, parent, effect_vars, last_group):
+    def __init__(self, parent, effect_vars):
         super().__init__(parent, text="Restaurar", command=self.revert)
         self.pack(fill="x", padx=5, pady=5)
-        self.last_group = last_group
+        self.last_group = parent.last_group
         self.effect_vars = effect_vars
 
     def revert(self):
-        self.last_group = "None"
+        self.last_group.set("None")
         for name, var in self.effect_vars.items():
             var.set(DEFAULT_VALUES[name])
+
 
 class SliderGroupPanel(Panel):
     def __init__(self, parent, groupLabel, *args):
@@ -66,6 +67,7 @@ class SliderGroupPanel(Panel):
         topLabel.cget("font").configure(size=20)
 
         self.variables, self.num_labels = [None] * len(args), [None] * len(args)
+        self.last_group = parent.last_group
 
         for i, (var, name, min_, max_) in enumerate(args):
             self.rowconfigure(i + 1, weight=1)
@@ -76,18 +78,21 @@ class SliderGroupPanel(Panel):
                 row=i + 1, column=0, sticky="w", padx=5
             )
 
-            slider = ctk.CTkSlider(
+            ctk.CTkSlider(
                 self,
                 fg_color=SLIDER_BG,
                 variable=var,
                 from_=min_,
                 to=max_,
                 number_of_steps=max_ - min_ if name == "Kernel" else 100,
-                command=lambda group: parent.last_used_group(groupLabel),
+                command=lambda *args: self.set_group(groupLabel),
             ).grid(row=i + 1, column=1, sticky="ew", padx=5)
 
             self.num_labels[i] = ctk.CTkLabel(self, text=var.get(), width=65)
             self.num_labels[i].grid(row=i + 1, column=2, sticky="e", padx=5)
+
+    def set_group(self, groupLabel, *args):
+        self.last_group.set(groupLabel)
 
     def update_text(self, name, index, mode):
         for var, num_label in zip(self.variables, self.num_labels):
@@ -98,6 +103,7 @@ class SliderGroupPanel(Panel):
 class RadioButtonGroupPanel(Panel):
     def __init__(self, parent, var, *args):
         super().__init__(parent)
+        self.last_group = parent.last_group
 
         for i, text in enumerate(args):
             self.rowconfigure(i, weight=1)
@@ -106,10 +112,13 @@ class RadioButtonGroupPanel(Panel):
                 text=text,
                 variable=var,
                 value=text,
-                command=lambda *args: parent.last_used_group("Adicional"),
+                command=self.set_group,
             )
             radioButton.grid(row=i, column=0, sticky="w", padx=5, pady=5)
             radioButton.cget("font").configure(size=20)
+
+    def set_group(self):
+        self.last_group.set("Adicional")
 
 
 class FileNamePanel(Panel):

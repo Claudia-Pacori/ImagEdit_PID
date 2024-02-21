@@ -16,7 +16,7 @@ class EffectsFrame(ctk.CTkFrame):
     def __init__(self, parent, frame):
         super().__init__(frame, fg_color="transparent")
         self.pack(expand=True, fill="both", padx=5, pady=10)
-        self.last_used_group = parent.menu_funcs["LastUsedGroup"]
+        self.last_group = parent.last_group
 
         SliderGroupPanel(
             self,
@@ -42,7 +42,7 @@ class EffectsFrame(ctk.CTkFrame):
             "Dilatación",
             "Erosión",
         )
-        RestoreButton(self, parent.effect_vars, parent.last_group)
+        RestoreButton(self, parent.effect_vars)
 
 
 class ExportFrame(ctk.CTkFrame):

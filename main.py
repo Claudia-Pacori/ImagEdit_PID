@@ -33,7 +33,7 @@ class App(ctk.CTk):
         self.mainloop()
 
     def init_parameters(self):
-        self.last_group = "None"
+        self.last_group = ctk.StringVar(value="None")
 
         self.effect_vars = {
             "gamma": ctk.DoubleVar(value=DEFAULT_VALUES["gamma"]),
@@ -53,7 +53,7 @@ class App(ctk.CTk):
             self.image_np = self.original_np.copy()
             self.image_bw_np = self.original_bw_np.copy()
 
-            match self.last_group:
+            match self.last_group.get():
                 case "Aclarar":
                     self.image_np = aclarar.apply_homomorphic_filter(
                         image=self.image_bw_np, alpha=self.effect_vars["gamma"].get()
@@ -91,8 +91,6 @@ class App(ctk.CTk):
         except Exception as e:
             pass
 
-    def last_used_group(self, group):
-        self.last_group = group
 
     def import_image(self, path):
         self.original = Image.open(path)
