@@ -4,3 +4,4 @@ temp
 images
 **/__pycache__/
 *.excalidraw
+*.code-workspace
