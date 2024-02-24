@@ -75,20 +75,28 @@ def rotate_image_opencv(image, angle_roll, angle_pitch, angle_yaw):
 
 
 if __name__ == "__main__":
-    input_image_path = "temp/images/test.jpg"
+    input_image_path = "temp/images/test.png"
     image = cv2.imread(input_image_path)
 
     # Rotacion manual
-    start_time = time.time()
-    rotated_image = rotate_image(image, 120, 60, 122)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"Rotacion completada en {execution_time:.5f} segundos")
+    manual_total_time = 0
+    for _ in range(10):
+        start_time = time.time()
+        rotated_image = rotate_image(image, 120, 60, 122)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        manual_total_time += execution_time
+    manual_avg_time = manual_total_time * 10
+    print(f"Rotacion manual - Promedio de tiempo: {manual_avg_time:.3f} ms")
 
-    # Rotacion con open cv
-    start_time = time.time()
-    rotated_image2 = rotate_image_opencv(image, 120, 60, 122)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"Rotacion completada en {execution_time:.5f} segundos")
+    # Rotacion con OpenCV
+    opencv_total_time = 0
+    for _ in range(10):
+        start_time = time.time()
+        rotated_image2 = rotate_image_opencv(image, 120, 60, 122)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        opencv_total_time += execution_time
+    opencv_avg_time = opencv_total_time * 10
+    print(f"Rotacion con OpenCV - Promedio de tiempo: {opencv_avg_time:.3f} ms")
 

@@ -15,7 +15,8 @@ def dilate_image(input_image):
     for i in range(1, height + 1):
         for j in range(1, width + 1):
             # Por ventanas
-            neighbors = [padded_image[i + k][j + l] * kernel[k, l] for k in range(-1, 2) for l in range(-1, 2)]
+            neighbors = [padded_image[i + k][j + l] * kernel[k, l]
+                         for k in range(-1, 2) for l in range(-1, 2)]
             output_image[i - 1, j - 1] = max(neighbors)
 
     #print(input_image.shape, output_image.shape)
@@ -29,19 +30,27 @@ def dilate_image_opencv(input_image):
     return dilated_image
 
 if __name__ == "__main__":
-    input_image_path = "temp/images/test.jpg"
+    input_image_path = "temp/images/test.png"
     img = cv2.imread(input_image_path, cv2.IMREAD_GRAYSCALE)
 
     # Dilatacion manual
-    start_time = time.time()
-    dilated_image = dilate_image(img)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"Dilatacion completada en {execution_time:.5f} segundos")
-    
-    # Dilatacion con opencv
-    start_time = time.time()
-    dilated_image = dilate_image_opencv(img)
-    end_time = time.time()
-    execution_time = end_time - start_time
-    print(f"Dilatacion completada en {execution_time:.5f} segundos")
+    manual_total_time = 0
+    for _ in range(10):
+        start_time = time.time()
+        dilated_image = dilate_image(img)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        manual_total_time += execution_time
+    manual_avg_time = manual_total_time * 10
+    print(f"Dilatacion manual - Promedio de tiempo: {manual_avg_time:.3f} ms")
+
+    # Dilatacion con OpenCV
+    opencv_total_time = 0
+    for _ in range(10):
+        start_time = time.time()
+        dilated_image = dilate_image_opencv(img)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        opencv_total_time += execution_time
+    opencv_avg_time = opencv_total_time * 10
+    print(f"Dilatacion con OpenCV - Promedio de tiempo: {opencv_avg_time:.3f} ms")
