@@ -25,7 +25,7 @@ def erode_image(input_image):
 
 def erode_image_opencv(input_image):
     kernel = np.ones((3, 3), np.uint8)
-    eroded_image = cv2.dilate(input_image, kernel, iterations=1)
+    eroded_image = cv2.erode(input_image, kernel, iterations=1)
 
     return eroded_image
 
