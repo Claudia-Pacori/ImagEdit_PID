@@ -8,33 +8,19 @@ def fft2(image):
 def ifft2(image):
     return np.fft.ifft2(np.fft.ifftshift(image))
 
-def apply_homomorphic_filter(image, alpha=0.5, cutoff=50):
-    # Convertir la imagen a escala de grises y luego a punto flotante
-    # gray_image = np.float32(image)
+def apply_homomorphic_filter(image, alpha=0.2, cutoff=50):
+    # Separar los canales de color
+    r, g, b = image[:, :, 0], image[:, :, 1], image[:, :, 2]
     
-    # Aplicar la transformada logarítmica para aumentar el rango dinámico
-    # log_image = np.log1p(gray_image)
-    log_image = np.log1p(image)
+    # Aplicar el filtro homomórfico a cada canal por separado
+    filtered_r = apply_filter(r, alpha, cutoff)
+    filtered_g = apply_filter(g, alpha, cutoff)
+    filtered_b = apply_filter(b, alpha, cutoff)
     
-    # Aplicar la transformada de Fourier bidimensional
-    fft_image = fft2(log_image)
+    # Combinar los canales filtrados para obtener la imagen en color
+    filtered_image = np.stack((filtered_r, filtered_g, filtered_b), axis=2)
     
-    # Filtrar el espectro de Fourier con un filtro homomórfico
-    rows, cols = log_image.shape
-    x = np.linspace(-0.5, 0.5, cols)
-    y = np.linspace(-0.5, 0.5, rows)
-    X, Y = np.meshgrid(x, y)
-    
-    H = alpha + (1 - alpha) * (1 - np.exp(-cutoff * ((X ** 2) + (Y ** 2))))
-    filtered_fft_shifted = fft_image * H
-    
-    # Aplicar la transformada inversa de Fourier bidimensional
-    filtered_image = ifft2(filtered_fft_shifted)
-    
-    # Calcular la magnitud de la parte real de la imagen filtrada
-    filtered_image = np.abs(filtered_image)
-    
-    # Normalizar la imagen filtrada al rango 0-255
+    # Normalizar los valores entre 0 y 255
     filtered_image = (filtered_image - np.min(filtered_image)) / (np.max(filtered_image) - np.min(filtered_image)) * 255
     
     # Convertir la imagen de vuelta a tipo uint8
@@ -42,11 +28,34 @@ def apply_homomorphic_filter(image, alpha=0.5, cutoff=50):
     
     return filtered_image
 
+def apply_filter(channel, alpha, cutoff):
+    # Aplicar la transformada logarítmica para aumentar el rango dinámico
+    log_channel = np.log1p(channel)
+    
+    # Aplicar la transformada de Fourier bidimensional
+    fft_channel = fft2(log_channel)
+    
+    # Filtrar el espectro de Fourier con un filtro homomórfico
+    rows, cols = log_channel.shape
+    x = np.linspace(-0.5, 0.5, cols)
+    y = np.linspace(-0.5, 0.5, rows)
+    X, Y = np.meshgrid(x, y)
+    
+    H = alpha + (1 - alpha) * (1 - np.exp(-cutoff * ((X ** 2) + (Y ** 2))))
+    filtered_fft_shifted = fft_channel * H
+    
+    # Aplicar la transformada inversa de Fourier bidimensional
+    filtered_channel = ifft2(filtered_fft_shifted)
+    
+    # Calcular la magnitud de la parte real de la imagen filtrada
+    filtered_channel = np.abs(filtered_channel)
+    
+    return filtered_channel
+
 
 if __name__ == "__main__":
     # Cargar la imagen y convertirla a escala de grises
-    image = Image.open('homomorfico1.jpg').convert('L')
-    gray_image = np.array(image)
+    image = Image.open('homomorfico1.jpg')
 
     # Aplicar el filtro homomórfico
-    filtered_image = apply_homomorphic_filter(gray_image)
+    filtered_image = apply_homomorphic_filter(image)
