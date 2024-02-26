@@ -33,7 +33,15 @@ class App(ctk.CTk):
         self.mainloop()
 
     def init_parameters(self):
+        self.cap = None
+
         self.last_group = ctk.StringVar(value="None")
+
+        self.video_status = ctk.StringVar(value="Paused")
+        self.video_status.trace_add("write", self.status_video)
+        
+        self.current_frame = ctk.IntVar(value=0)
+        self.current_frame.trace_add("write", self.update_video_frame)
 
         self.effect_vars = {
             "gamma": ctk.DoubleVar(value=DEFAULT_VALUES["gamma"]),
@@ -80,7 +88,9 @@ class App(ctk.CTk):
                     else:
                         self.image_np = self.original_np.copy()
                 case _:
-                    self.image_np = self.original_np.copy()
+                    self.image = self.original.copy()
+                    self.place_image(self.image_output, self.image)
+                    return
 
             if len(self.image_np.shape) == 3 and self.image_np.shape[2] == 4:
                 self.image_np = self.image_np[:, :, :3]
@@ -91,12 +101,69 @@ class App(ctk.CTk):
         except Exception as e:
             pass
 
+    def import_video(self, path: str):
+        self.image_input.delete("all")
+        self.image_output.delete("all")
+        self.current_frame.set(0)
+
+        if self.cap is not None:
+            self.cap.release()
+
+        self.cap = cv2.VideoCapture(path)
+        if not self.cap.isOpened():
+            raise ValueError("Unable to open video source", path)
+
+        self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.frame_rate = int(self.cap.get(cv2.CAP_PROP_FPS))
+        videoWidth = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        videoHeight = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.image_ratio = videoWidth / videoHeight
+
+        self.video_progress_bar.initialize_bar(self.total_frames, self.frame_rate)
+
+        ret, frame = self.cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            self.original = Image.fromarray(frame)
+            self.original_bw = self.original.convert("L")
+            self.image = self.original.copy()
+
+            self.resize_image(self.image_input, self.original)
+            self.resize_image(self.image_output, self.image)
+
+    def update_video_frame(self, *args):
+        if self.cap is not None and self.cap.isOpened():
+            self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame.get())
+            ret, frame = self.cap.read()
+            if ret:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                self.original = Image.fromarray(frame)
+                self.original_bw = self.original.convert("L")
+                self.original_np = np.array(self.original)
+                self.original_bw_np = np.array(self.original_bw)
+
+                self.image = self.original.copy()
+                self.place_image(self.image_input, self.original)
+                self.manipulate_image()
+
+    def status_video(self, *args):
+        if self.video_status.get() == "Playing":
+            self.current_frame.set(self.current_frame.get() + 1)
+            
+            self.after(1000 // self.frame_rate, self.status_video)
+        elif self.video_status.get() == "Stopped":
+            self.current_frame.set(0)
 
     def import_image(self, path):
+        self.image_input.delete("all")
+        self.image_output.delete("all")
         self.original = Image.open(path)
-        self.original_np = np.array(self.original)
         self.original_bw = self.original.convert("L")
+
+        self.original_np = np.array(self.original)
         self.original_bw_np = np.array(self.original_bw)
+
         self.image = self.original.copy()
         self.image_ratio = self.original.width / self.original.height
         self.resize_image(self.image_input, self.original)

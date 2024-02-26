@@ -1,4 +1,3 @@
-from email.policy import default
 import customtkinter as ctk
 from settings_ import *
 from tkinter import filedialog
@@ -19,16 +18,25 @@ class OpenImageButton(ctk.CTkButton):
     def open_dialog(self):
         path = filedialog.askopenfile(
             filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.gif")]
-        ).name
-        self.import_func(path)
+        )
+        if path:
+            path = path.name
+            self.import_func(path)
 
 
 class OpenVideoButton(ctk.CTkButton):
-    def __init__(self, parent, import_func=None):
-        super().__init__(
-            parent, text="Abrir Video", command=import_func, state="disabled"
-        )
+    def __init__(self, parent, import_func):
+        super().__init__(parent, text="Abrir Video", command=self.open_dialog)
         self.pack(fill="x", padx=5, pady=5)
+        self.import_func = import_func
+
+    def open_dialog(self):
+        path = filedialog.askopenfile(
+            filetypes=[("Video files", "*.mp4 *.avi *.flv *.mov")]
+        )
+        if path:
+            path = path.name
+            self.import_func(path)
 
 
 class OpenWebcamButton(ctk.CTkButton):

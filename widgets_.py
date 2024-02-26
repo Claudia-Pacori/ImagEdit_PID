@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import Canvas
 from settings_ import *
 from menu_ import *
+import cv2
 
 
 class Menu(ctk.CTkTabview):
@@ -15,6 +16,7 @@ class Menu(ctk.CTkTabview):
 
         self.menu_funcs = {
             "OpenImage": parent.import_image,
+            "OpenVideo": parent.import_video,
             "ExportImage": parent.export_image,
         }
         self.effect_vars = parent.effect_vars
@@ -54,26 +56,70 @@ class VideoProgressBar(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color=BACKGROUND_COLOR)
         self.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+        self.current_frame = parent.current_frame
+        self.video_status = parent.video_status
 
-        for i in range(6):
+        for i in range(5):
             self.columnconfigure(i, weight=1, uniform="a")
-            if i == 4:
+            if i == 3:
                 self.columnconfigure(i, weight=7, uniform="a")
 
-        self.play = ctk.CTkButton(self, text="Play", state="disabled")
-        self.play.grid(row=0, column=0, padx=5)
+        self.play_pause = ctk.CTkButton(
+            self, text="Play", state="disabled", command=self.play_pause_video
+        )
+        self.play_pause.grid(row=0, column=0, padx=5)
 
-        self.pause = ctk.CTkButton(self, text="Pause", state="disabled")
-        self.pause.grid(row=0, column=1, padx=5)
-
-        self.stop = ctk.CTkButton(self, text="Stop", state="disabled")
-        self.stop.grid(row=0, column=2, padx=5)
+        self.stop = ctk.CTkButton(
+            self, text="Stop", state="disabled", command=self.stop_video
+        )
+        self.stop.grid(row=0, column=1, padx=5)
 
         self.current_time = ctk.CTkLabel(self, text="00:00", state="disabled")
-        self.current_time.grid(row=0, column=3, padx=5)
+        self.current_time.grid(row=0, column=2, padx=5)
 
-        self.progress = ctk.CTkSlider(self, fg_color=SLIDER_BG, state="disabled")
-        self.progress.grid(row=0, column=4, padx=5, sticky="ew")
+        self.progress = ctk.CTkSlider(
+            self, fg_color=SLIDER_BG, command=self.update_current_time, state="disabled"
+        )
+        self.progress.grid(row=0, column=3, padx=5, sticky="ew")
+        self.progress.set(0)
 
         self.total_time = ctk.CTkLabel(self, text="00:00", state="disabled")
-        self.total_time.grid(row=0, column=5, padx=5)
+        self.total_time.grid(row=0, column=4, padx=5)
+
+    def initialize_bar(self, total_frames, frame_rate):
+        self.play_pause.configure(state="normal")
+        self.stop.configure(state="normal")
+        self.current_time.configure(state="normal")
+        self.progress.configure(state="normal")
+        self.total_time.configure(state="normal")
+
+        self.var = self.current_frame
+        self.var.trace_add("write", self.update_current_time)
+
+        self.total_frames = total_frames
+        self.frame_rate = frame_rate
+        self.progress.configure(
+            to=total_frames, number_of_steps=total_frames, variable=self.var
+        )
+        self.total_time.configure(
+            text=f"{total_frames//frame_rate//60:02}:{total_frames//frame_rate%60:02}"
+        )
+
+    def update_current_time(self, *args):
+        current_frame = self.var.get()
+        frame_rate = self.frame_rate
+        self.current_time.configure(
+            text=f"{current_frame//frame_rate//60:02}:{current_frame//frame_rate%60:02}"
+        )
+
+    def play_pause_video(self):
+        if self.play_pause.cget("text") == "Play":
+            self.play_pause.configure(text="Pause")
+            self.video_status.set("Playing")
+        else:
+            self.play_pause.configure(text="Play")
+            self.video_status.set("Paused")
+    
+    def stop_video(self):
+        self.play_pause.configure(text="Play")
+        self.video_status.set("Stopped")

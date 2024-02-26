@@ -8,7 +8,7 @@ class MenuFrame(ctk.CTkFrame):
         self.pack(expand=True, fill="both", padx=5, pady=10)
 
         OpenImageButton(self, parent.menu_funcs["OpenImage"])
-        OpenVideoButton(self)
+        OpenVideoButton(self, parent.menu_funcs["OpenVideo"])
         OpenWebcamButton(self)
 
 
