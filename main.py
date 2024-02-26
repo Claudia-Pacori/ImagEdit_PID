@@ -64,7 +64,7 @@ class App(ctk.CTk):
             match self.last_group.get():
                 case "Aclarar":
                     self.image_np = aclarar.apply_homomorphic_filter(
-                        image=self.image_bw_np, alpha=self.effect_vars["gamma"].get()
+                        image=self.image_np, alpha=self.effect_vars["gamma"].get()
                     )
                 case "Bordes":
                     self.image_np = bordes.gaussian_highpass_filter(
