@@ -7,6 +7,7 @@ import scripts.dilatacion as dilatacion
 import scripts.erosion as erosion
 import scripts.rotacion as rotacion
 import numpy as np
+from threading import Thread, current_thread, main_thread
 
 
 class App(ctk.CTk):
@@ -14,7 +15,12 @@ class App(ctk.CTk):
         super().__init__()
 
         ctk.set_appearance_mode("dark")
-        self.geometry("1024x768")
+        window_height = self.winfo_screenheight()
+        window_width = self.winfo_screenwidth()
+        window_size = f"{int(0.8*window_width)}x{int(0.8*window_height)}"
+        print(window_size)
+        self.geometry(window_size)
+        # self.geometry("1024x768")
         self.title("Imagedit - Image Editor")
         self.resizable(False, False)
         self.init_parameters()
@@ -53,8 +59,8 @@ class App(ctk.CTk):
             "option": ctk.StringVar(value=DEFAULT_VALUES["option"]),
         }
 
-        for var in self.effect_vars.values():
-            var.trace_add("write", self.manipulate_image)
+        # for var in self.effect_vars.values():
+        #     var.trace_add("write", self.manipulate_image)
 
     def manipulate_image(self, *args):
         try:
@@ -133,6 +139,11 @@ class App(ctk.CTk):
             self.resize_image(self.image_output, self.image)
 
     def update_video_frame(self, *args):
+        if current_thread() != main_thread():
+            print("Not in main thread")
+        else:
+            print("In main thread")
+        
         if self.cap is not None and self.cap.isOpened():
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame.get())
             ret, frame = self.cap.read()
@@ -145,15 +156,22 @@ class App(ctk.CTk):
 
                 self.image = self.original.copy()
                 self.place_image(self.image_input, self.original)
-                self.manipulate_image()
+                # self.manipulate_image()
 
     def status_video(self, *args):
         if self.video_status.get() == "Playing":
-            self.current_frame.set(self.current_frame.get() + 1)
-            
-            self.after(1000 // self.frame_rate, self.status_video)
+            self.video_thread = Thread(target=self.video_update, daemon=True)
+            self.video_thread.start()
         elif self.video_status.get() == "Stopped":
+            self.video_thread.join()
             self.current_frame.set(0)
+    
+    def video_update(self):
+        if self.video_status.get() == "Playing":
+            self.current_frame.set(self.current_frame.get() + 1)
+            self.after(100 // self.frame_rate, self.video_update)
+        else:
+            print("Video paused or stopped, stopping thread...")
 
     def import_image(self, path):
         self.image_input.delete("all")
