@@ -55,7 +55,7 @@ def apply_filter(channel, alpha, cutoff):
 
 if __name__ == "__main__":
     # Cargar la imagen y convertirla a escala de grises
-    image = Image.open('homomorfico1.jpg')
+    image = np.array(Image.open('homomorfico1.jpg'))
 
     # Aplicar el filtro homomórfico
     filtered_image = apply_homomorphic_filter(image)
