@@ -8,6 +8,7 @@ import scripts.erosion as erosion
 import scripts.rotacion as rotacion
 import numpy as np
 from threading import Thread, current_thread, main_thread
+from time import sleep
 
 
 class App(ctk.CTk):
@@ -47,7 +48,7 @@ class App(ctk.CTk):
         self.video_status.trace_add("write", self.status_video)
         
         self.current_frame = ctk.IntVar(value=0)
-        self.current_frame.trace_add("write", self.update_video_frame)
+        # self.current_frame.trace_add("write", self.update_video_frame)
 
         self.effect_vars = {
             "gamma": ctk.DoubleVar(value=DEFAULT_VALUES["gamma"]),
@@ -139,11 +140,6 @@ class App(ctk.CTk):
             self.resize_image(self.image_output, self.image)
 
     def update_video_frame(self, *args):
-        if current_thread() != main_thread():
-            print("Not in main thread")
-        else:
-            print("In main thread")
-        
         if self.cap is not None and self.cap.isOpened():
             self.cap.set(cv2.CAP_PROP_POS_FRAMES, self.current_frame.get())
             ret, frame = self.cap.read()
@@ -160,18 +156,27 @@ class App(ctk.CTk):
 
     def status_video(self, *args):
         if self.video_status.get() == "Playing":
-            self.video_thread = Thread(target=self.video_update, daemon=True)
+            self.video_thread = Thread(target=self.video_update, args=(self,), daemon=True)
             self.video_thread.start()
         elif self.video_status.get() == "Stopped":
             self.video_thread.join()
             self.current_frame.set(0)
     
-    def video_update(self):
+    def video_update(self,*args):
         if self.video_status.get() == "Playing":
             self.current_frame.set(self.current_frame.get() + 1)
-            self.after(100 // self.frame_rate, self.video_update)
+            self.update_video_frame()
+            if current_thread() != main_thread():
+                print("Not in main thread")
+            else:
+                print("In main thread")
+            
+            sleep(1 / self.frame_rate)
+            self.video_update(self, *args)
+            # self.after(100 // self.frame_rate, self.video_update)
         else:
             print("Video paused or stopped, stopping thread...")
+            return
 
     def import_image(self, path):
         self.image_input.delete("all")
