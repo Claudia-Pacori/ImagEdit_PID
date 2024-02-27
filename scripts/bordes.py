@@ -90,20 +90,41 @@ def hysteresis_thresholding(image, low_threshold, high_threshold):
 
     return final_edges.astype(np.uint8)
 
+
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    
+    import cv2
+    import time
+
+    def calculate_mean_time(func):
+        def wrapper(*args, **kwargs):
+            times = []
+            for _ in range(10):
+                start_time = time.perf_counter()
+                func(*args, **kwargs)
+                end_time = time.perf_counter()
+                times.append(end_time - start_time)
+
+            mean_time = sum(times) / len(times)
+            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+
+        return wrapper
+
     # Cargar la imagen
-    image = Image.open("Lenna.png")
+    image = cv2.imread("images/lena.png", cv2.IMREAD_GRAYSCALE)
+
+    @calculate_mean_time
+    def detect_edges_with_canny(image, sigma, low_threshold, high_threshold):
+        return canny_edge_detection(image, sigma, low_threshold, high_threshold)
 
     # Aplicar detección de bordes con Canny
-    edges = canny_edge_detection(image)
+    detect_edges_with_canny(image, sigma=1.4, low_threshold=20, high_threshold=60)
 
-    # Mostrar la imagen original y la detección de bordes
-    plt.imshow(image, cmap="gray")
-    plt.axis("off")
-    plt.show()
-
-    plt.imshow(edges, cmap="gray")
-    plt.axis("off")
-    plt.show()
+    # Aplicar detección de bordes con OpenCV
+    @calculate_mean_time
+    def detect_edges_with_opencv(image, low_threshold, high_threshold):
+        return cv2.Canny(image, low_threshold, high_threshold)
+    
+    detect_edges_with_opencv(image, low_threshold=20, high_threshold=60)
+    
+    # Guardar la imagen edges
+    # cv2.imwrite("images/edges.png", edges)

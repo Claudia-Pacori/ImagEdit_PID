@@ -61,21 +61,38 @@ def apply_filter(channel, alpha, cutoff):
 
 if __name__ == "__main__":
     import cv2
+    import time
 
-    # # Cargar la imagen y convertirla a escala de grises
-    # image = np.array(Image.open("homomorfico1.jpg"))
+    def calculate_mean_time(func):
+        def wrapper(*args, **kwargs):
+            times = []
+            for _ in range(10):
+                start_time = time.perf_counter()
+                func(*args, **kwargs)
+                end_time = time.perf_counter()
+                times.append(end_time - start_time)
 
-    # # Aplicar el filtro homomórfico
-    # filtered_image = apply_homomorphic_filter(image)
+            mean_time = sum(times) / len(times)
+            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
 
-    path = "D:\DocumentosUTEC\Books\Procesamiento de Imagenes Digitales\ImagEdit_PID\images\Lenna.png"
-    original = cv2.imread(path, cv2.IMREAD_COLOR)
-    # original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
-    print(type(original))
-    filtered_image = apply_homomorphic_filter(original)
-    print(f"Original: {original.shape}, Filtered: {filtered_image.shape}")
-    print("success")
-    cv2.imshow("Original", original)
-    cv2.imshow("Filtered", filtered_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+        return wrapper
+
+    # Cargar la imagen
+    image = cv2.imread("images/lena.png", cv2.IMREAD_COLOR)
+
+    # Filtro manual
+    @calculate_mean_time
+    def manual_homomorphic_filter(image, alpha, cutoff):
+        return apply_homomorphic_filter(image, alpha, cutoff)
+
+    manual_homomorphic_filter(image, alpha=0.2, cutoff=50)
+    
+    # # Filtro con OpenCV
+    # @calculate_mean_time
+    # def opencv_homomorphic_filter(image, alpha, cutoff):
+    #     return cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(image)
+
+    # opencv_homomorphic_filter(image, alpha=0.2, cutoff=50)
+
+    image_out = apply_homomorphic_filter(image, alpha=0.2, cutoff=50)
+    cv2.imwrite("images/lena_homomorphic.png", image_out)

@@ -45,18 +45,28 @@ def rotate_image(image, angle_roll, angle_pitch, angle_yaw):
 
     # Pixeles originales
     y_coords, x_coords = np.mgrid[0:height, 0:width]
-    coords = np.stack((x_coords - center[0], y_coords - center[1], np.zeros_like(x_coords)), axis=-1)
-    
-    rotated_coords = np.dot(coords, rotation_matrix.T).astype(int) # Rotacion
-    rotated_x_coords = rotated_coords[:, :, 0] + center[0] # Ajustar centro
-    rotated_y_coords = rotated_coords[:, :, 1] + center[1] # Ajustar centro
+    coords = np.stack(
+        (x_coords - center[0], y_coords - center[1], np.zeros_like(x_coords)), axis=-1
+    )
+
+    rotated_coords = np.dot(coords, rotation_matrix.T).astype(int)  # Rotacion
+    rotated_x_coords = rotated_coords[:, :, 0] + center[0]  # Ajustar centro
+    rotated_y_coords = rotated_coords[:, :, 1] + center[1]  # Ajustar centro
 
     # Crear imagen rotada
     rotated_image = np.zeros_like(image)
-    mask = (rotated_x_coords >= 0) & (rotated_x_coords < width) & (rotated_y_coords >= 0) & (rotated_y_coords < height)
-    rotated_image[rotated_y_coords[mask], rotated_x_coords[mask]] = image[y_coords[mask], x_coords[mask]]
+    mask = (
+        (rotated_x_coords >= 0)
+        & (rotated_x_coords < width)
+        & (rotated_y_coords >= 0)
+        & (rotated_y_coords < height)
+    )
+    rotated_image[rotated_y_coords[mask], rotated_x_coords[mask]] = image[
+        y_coords[mask], x_coords[mask]
+    ]
 
     return rotated_image
+
 
 def rotate_image_opencv(image, angle_roll, angle_pitch, angle_yaw):
     height, width = image.shape[:2]
@@ -64,39 +74,63 @@ def rotate_image_opencv(image, angle_roll, angle_pitch, angle_yaw):
     rotation_matrix = get_rotation_matrix(angle_pitch, angle_yaw, angle_roll)
 
     # Ajustar el centro como punto de referencia
-    rotation_matrix[0, 2] += center[0] - center[0] * rotation_matrix[0, 0] - center[1] * rotation_matrix[0, 1]
-    rotation_matrix[1, 2] += center[1] - center[0] * rotation_matrix[1, 0] - center[1] * rotation_matrix[1, 1]
+    rotation_matrix[0, 2] += (
+        center[0]
+        - center[0] * rotation_matrix[0, 0]
+        - center[1] * rotation_matrix[0, 1]
+    )
+    rotation_matrix[1, 2] += (
+        center[1]
+        - center[0] * rotation_matrix[1, 0]
+        - center[1] * rotation_matrix[1, 1]
+    )
 
     # Rotacion
-    rotated_image = cv2.warpAffine(image, rotation_matrix[:2], (width, height), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0))
+    rotated_image = cv2.warpAffine(
+        image,
+        rotation_matrix[:2],
+        (width, height),
+        flags=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=(0, 0, 0),
+    )
 
     return rotated_image
 
 
-
 if __name__ == "__main__":
-    input_image_path = "temp/images/test.png"
-    image = cv2.imread(input_image_path)
+    import cv2
+    import time
 
+    def calculate_mean_time(func):
+        def wrapper(*args, **kwargs):
+            times = []
+            for _ in range(10):
+                start_time = time.perf_counter()
+                func(*args, **kwargs)
+                end_time = time.perf_counter()
+                times.append(end_time - start_time)
+
+            mean_time = sum(times) / len(times)
+            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+
+        return wrapper
+
+    # Cargar la imagen
+    image = cv2.imread("images/lena.png", cv2.IMREAD_COLOR)
+    
     # Rotacion manual
-    manual_total_time = 0
-    for _ in range(10):
-        start_time = time.time()
+    @calculate_mean_time
+    def manual_rotation():
         rotated_image = rotate_image(image, 120, 60, 122)
-        end_time = time.time()
-        execution_time = end_time - start_time
-        manual_total_time += execution_time
-    manual_avg_time = manual_total_time * 10
-    print(f"Rotacion manual - Promedio de tiempo: {manual_avg_time:.3f} ms")
-
+    
     # Rotacion con OpenCV
-    opencv_total_time = 0
-    for _ in range(10):
-        start_time = time.time()
-        rotated_image2 = rotate_image_opencv(image, 120, 60, 122)
-        end_time = time.time()
-        execution_time = end_time - start_time
-        opencv_total_time += execution_time
-    opencv_avg_time = opencv_total_time * 10
-    print(f"Rotacion con OpenCV - Promedio de tiempo: {opencv_avg_time:.3f} ms")
-
+    @calculate_mean_time
+    def opencv_rotation():
+        rotated_image = rotate_image_opencv(image, 120, 60, 122)
+    
+    # Aplicar rotacion manual
+    manual_rotation()
+    
+    # Aplicar rotacion con OpenCV
+    opencv_rotation()
