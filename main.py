@@ -111,8 +111,11 @@ class App(ctk.CTk):
     def import_image(self, path):
         self.image_input.delete("all")
         self.image_output.delete("all")
+
         if self.cap is not None:
             self.cap.release()
+
+        self.video_progress_bar.disable()
 
         self.type_imported = "image"
         image_original = cv2.imread(path, cv2.IMREAD_COLOR)
