@@ -58,6 +58,7 @@ class VideoProgressBar(ctk.CTkFrame):
         self.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
         self.current_frame = parent.current_frame
         self.video_status = parent.video_status
+        self.slider_update = parent.slider_update
 
         for i in range(5):
             self.columnconfigure(i, weight=1, uniform="a")
@@ -104,6 +105,8 @@ class VideoProgressBar(ctk.CTkFrame):
         self.total_time.configure(
             text=f"{total_frames//frame_rate//60:02}:{total_frames//frame_rate%60:02}"
         )
+    
+        self.progress.bind("<ButtonRelease-1>", self.slider_update)
 
     def update_current_time(self, *args):
         current_frame = self.var.get()
