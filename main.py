@@ -289,8 +289,7 @@ class App(ctk.CTk):
 
     def export_image(self, path, name, file):
         export_string = f"{file}/{path}.{name}"
-        self.image.save(export_string)
-
+        cv2.imwrite(export_string, self.image)
 
 if __name__ == "__main__":
     App()
