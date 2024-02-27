@@ -17,6 +17,7 @@ class Menu(ctk.CTkTabview):
         self.menu_funcs = {
             "OpenImage": parent.import_image,
             "OpenVideo": parent.import_video,
+            "OpenWebcam": parent.import_webcam,
             "ExportImage": parent.export_image,
         }
         self.effect_vars = parent.effect_vars
@@ -43,7 +44,6 @@ class ImageOutput(Canvas):
     def __init__(self, parent):
         super().__init__(
             parent,
-            # background=BACKGROUND_COLOR,
             background=FRAME_COLOR,
             bd=0,
             highlightthickness=0,
@@ -107,6 +107,13 @@ class VideoProgressBar(ctk.CTkFrame):
         )
     
         self.progress.bind("<ButtonRelease-1>", self.slider_update)
+
+    def disable(self):
+        self.play_pause.configure(state="disabled")
+        self.stop.configure(state="disabled")
+        self.current_time.configure(state="disabled")
+        self.progress.configure(state="disabled")
+        self.total_time.configure(state="disabled")
 
     def update_current_time(self, *args):
         current_frame = self.var.get()

@@ -9,7 +9,7 @@ class MenuFrame(ctk.CTkFrame):
 
         OpenImageButton(self, parent.menu_funcs["OpenImage"])
         OpenVideoButton(self, parent.menu_funcs["OpenVideo"])
-        OpenWebcamButton(self)
+        OpenWebcamButton(self, parent.menu_funcs["OpenWebcam"])
 
 
 class EffectsFrame(ctk.CTkFrame):
@@ -26,8 +26,9 @@ class EffectsFrame(ctk.CTkFrame):
         SliderGroupPanel(
             self,
             "Bordes",
-            (parent.effect_vars["kernel"], "Kernel", 3, 9),
             (parent.effect_vars["sigma"], "Sigma", 0.00, 1.00),
+            (parent.effect_vars["low_th"], "Low", 0, 255),
+            (parent.effect_vars["high_th"], "High", 0, 255),
         )
         SliderGroupPanel(
             self,

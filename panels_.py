@@ -41,9 +41,7 @@ class OpenVideoButton(ctk.CTkButton):
 
 class OpenWebcamButton(ctk.CTkButton):
     def __init__(self, parent, import_func=None):
-        super().__init__(
-            parent, text="Abrir Webcam", command=import_func, state="disabled"
-        )
+        super().__init__(parent, text="Abrir Webcam", command=import_func)
         self.pack(fill="x", padx=5, pady=5)
 
 
@@ -92,7 +90,7 @@ class SliderGroupPanel(Panel):
                 variable=var,
                 from_=min_,
                 to=max_,
-                number_of_steps=max_ - min_ if name == "Kernel" else 100,
+                number_of_steps=100 if max_ == 1 else max_ - min_,
                 command=lambda *args: self.set_group(groupLabel),
             ).grid(row=i + 1, column=1, sticky="ew", padx=5)
 

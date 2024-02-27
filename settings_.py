@@ -9,6 +9,8 @@ DEFAULT_VALUES = {
     "gamma": 1.00,
     "kernel": 5,
     "sigma": 1.00,
+    "low_th": 10,
+    "high_th": 90,
     "roll": 0.00,
     "pitch": 0.00,
     "yaw": 0.00,
