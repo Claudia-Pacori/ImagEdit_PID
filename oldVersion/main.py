@@ -1,10 +1,9 @@
-import ttkbootstrap as ttk
-from tkinter import filedialog
-from tkinter.messagebox import showerror, askyesno
-from tkinter import colorchooser
-from PIL import Image, ImageOps, ImageTk, ImageFilter, ImageGrab
 import os
+from tkinter import filedialog
+from tkinter.messagebox import askyesno, showerror
 
+import ttkbootstrap as ttk
+from PIL import Image, ImageFilter, ImageOps, ImageTk
 
 # defining global variables
 LF_WIDTH = 250
@@ -67,7 +66,7 @@ def flip_image():
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
         canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
-    except:
+    except Exception:
         showerror(title="Flip Image Error", message="Please select an image to flip!")
 
 
@@ -87,7 +86,7 @@ def rotate_image():
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
         canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
-    except:
+    except Exception:
         showerror(
             title="Rotate Image Error", message="Please select an image to rotate!"
         )
@@ -103,7 +102,7 @@ def restore_image():
         canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
         if os.path.exists(temp_filter):
             os.remove(temp_filter)
-    except:
+    except Exception:
         showerror(
             title="Restore Image Error", message="Please select an image to restore!"
         )
@@ -162,7 +161,7 @@ def apply_filter(filter):
         # convert the PIL image to a Tkinter PhotoImage and display it on the canvas
         canvas.create_image(RF_WIDTH / 2, HEIGHT / 2, image=image)
 
-    except:
+    except Exception:
         showerror(title="Error", message="Please select an image first!")
 
 
@@ -222,7 +221,9 @@ options_label = [
 
 button_icon = [None] * 6
 for i in range(len(options)):
-    button_icon[i] = ttk.PhotoImage(file="assets/" + options[i] + ".png").subsample(12, 12)
+    button_icon[i] = ttk.PhotoImage(file="assets/" + options[i] + ".png").subsample(
+        12, 12
+    )
     image_button = ttk.Button(
         left_frame,
         image=button_icon[i],

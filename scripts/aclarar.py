@@ -1,5 +1,4 @@
 import numpy as np
-from PIL import Image
 
 
 def fft2(image):
@@ -60,8 +59,9 @@ def apply_filter(channel, alpha, cutoff):
 
 
 if __name__ == "__main__":
-    import cv2
     import time
+
+    import cv2
 
     def calculate_mean_time(func):
         def wrapper(*args, **kwargs):
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                 times.append(end_time - start_time)
 
             mean_time = sum(times) / len(times)
-            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+            print(f"Mean time: {1000 * mean_time:.2f} milliseconds")
 
         return wrapper
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
         return apply_homomorphic_filter(image, alpha, cutoff)
 
     manual_homomorphic_filter(image, alpha=0.2, cutoff=50)
-    
+
     # # Filtro con OpenCV
     # @calculate_mean_time
     # def opencv_homomorphic_filter(image, alpha, cutoff):

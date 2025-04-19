@@ -1,5 +1,27 @@
 import customtkinter as ctk
-from panels import *
+from panels import (
+    DropDownPanel,
+    FileNamePanel,
+    FilePathPanel,
+    RevertButton,
+    SaveButton,
+    SegmentedPanel,
+    SliderPanel,
+    SwitchPanel,
+)
+
+from settings_ import (
+    BLUR_DEFAULT,
+    BRIGHTNESS_DEFAULT,
+    CONTRAST_DEFAULT,
+    EFFECT_OPTIONS,
+    FLIP_OPTIONS,
+    GRAYSACLE_DEFAULT,
+    INVERT_DEFAULT,
+    ROTATE_DEFAULT,
+    VIBRANCE_DEFAULT,
+    ZOOM_DEFAULT,
+)
 
 
 class Menu(ctk.CTkTabview):

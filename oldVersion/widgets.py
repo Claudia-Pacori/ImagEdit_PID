@@ -1,6 +1,11 @@
+from tkinter import Canvas, filedialog
+
 import customtkinter as ctk
-from tkinter import filedialog, Canvas
-from settings import *
+from settings import (
+    BACKGROUND_COLOR,
+    CLOSE_RED,
+    WHITE,
+)
 
 
 class ImageImport(ctk.CTkFrame):

@@ -1,8 +1,9 @@
-import customtkinter as ctk
 from tkinter import Canvas
-from settings_ import *
-from menu_ import *
-import cv2
+
+import customtkinter as ctk
+
+from menu_ import EffectsFrame, ExportFrame, MenuFrame
+from settings_ import BACKGROUND_COLOR, FRAME_COLOR, SLIDER_BG
 
 
 class Menu(ctk.CTkTabview):
@@ -103,9 +104,9 @@ class VideoProgressBar(ctk.CTkFrame):
             to=total_frames, number_of_steps=total_frames, variable=self.var
         )
         self.total_time.configure(
-            text=f"{total_frames//frame_rate//60:02}:{total_frames//frame_rate%60:02}"
+            text=f"{total_frames // frame_rate // 60:02}:{total_frames // frame_rate % 60:02}"
         )
-    
+
         self.progress.bind("<ButtonRelease-1>", self.slider_update)
 
     def disable(self):
@@ -119,7 +120,7 @@ class VideoProgressBar(ctk.CTkFrame):
         current_frame = self.var.get()
         frame_rate = self.frame_rate
         self.current_time.configure(
-            text=f"{current_frame//frame_rate//60:02}:{current_frame//frame_rate%60:02}"
+            text=f"{current_frame // frame_rate // 60:02}:{current_frame // frame_rate % 60:02}"
         )
 
     def play_pause_video(self):
@@ -129,7 +130,7 @@ class VideoProgressBar(ctk.CTkFrame):
         else:
             self.play_pause.configure(text="Play")
             self.video_status.set("Paused")
-    
+
     def stop_video(self):
         self.play_pause.configure(text="Play")
         self.video_status.set("Stopped")

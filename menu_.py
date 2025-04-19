@@ -1,5 +1,16 @@
 import customtkinter as ctk
-from panels_ import *
+
+from panels_ import (
+    FileNamePanel,
+    FilePathPanel,
+    OpenImageButton,
+    OpenVideoButton,
+    OpenWebcamButton,
+    RadioButtonGroupPanel,
+    RestoreButton,
+    SaveButton,
+    SliderGroupPanel,
+)
 
 
 class MenuFrame(ctk.CTkFrame):

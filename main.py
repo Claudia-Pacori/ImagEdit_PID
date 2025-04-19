@@ -1,13 +1,17 @@
+from threading import Thread
+from time import perf_counter
+
 import customtkinter as ctk
-from widgets_ import *
+import cv2
 from PIL import Image, ImageTk
+
 import scripts.aclarar as aclarar
 import scripts.bordes as bordes
 import scripts.dilatacion as dilatacion
 import scripts.erosion as erosion
 import scripts.rotacion as rotacion
-from threading import Thread, active_count, main_thread, current_thread
-from time import sleep, perf_counter
+from settings_ import DEFAULT_VALUES
+from widgets_ import ImageInput, ImageOutput, Menu, VideoProgressBar
 
 
 class App(ctk.CTk):
@@ -17,7 +21,7 @@ class App(ctk.CTk):
         ctk.set_appearance_mode("dark")
         window_height = self.winfo_screenheight()
         window_width = self.winfo_screenwidth()
-        window_size = f"{int(0.5*window_width)}x{int(0.5*window_height)}"
+        window_size = f"{int(0.5 * window_width)}x{int(0.5 * window_height)}"
         print(window_size)
         self.geometry(window_size)
         self.title("Imagedit - Image Editor")
@@ -63,7 +67,7 @@ class App(ctk.CTk):
 
     def manipulate_image_thread(self, *args):
         if self.type_imported == "image":
-            if hasattr(self, 'image_thread') and self.image_thread.is_alive():
+            if hasattr(self, "image_thread") and self.image_thread.is_alive():
                 return
             self.image_thread = Thread(target=self.manipulate_image, daemon=True)
             self.image_thread.start()
@@ -105,7 +109,7 @@ class App(ctk.CTk):
 
             self.place_image(self.image_output, self.image)
 
-        except Exception as e:
+        except Exception:
             pass
 
     def import_image(self, path):
@@ -163,7 +167,9 @@ class App(ctk.CTk):
         self.webcam_thread = Thread(target=self.webcam_update, daemon=True)
         self.webcam_thread.start()
 
-        self.webcam_output_thread = Thread(target=self.webcam_output_update, daemon=True)
+        self.webcam_output_thread = Thread(
+            target=self.webcam_output_update, daemon=True
+        )
         self.webcam_output_thread.start()
 
     def webcam_update(self, *args):
@@ -290,6 +296,7 @@ class App(ctk.CTk):
     def export_image(self, path, name, file):
         export_string = f"{file}/{path}.{name}"
         cv2.imwrite(export_string, self.image)
+
 
 if __name__ == "__main__":
     App()

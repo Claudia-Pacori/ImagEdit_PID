@@ -1,6 +1,8 @@
-import customtkinter as ctk
-from settings_ import *
 from tkinter import filedialog
+
+import customtkinter as ctk
+
+from settings_ import DARK_GRAY, DEFAULT_VALUES, SLIDER_BG
 
 
 class Panel(ctk.CTkFrame):
@@ -103,7 +105,7 @@ class SliderGroupPanel(Panel):
     def update_text(self, name, index, mode):
         for var, num_label in zip(self.variables, self.num_labels):
             if var._name == name:
-                num_label.configure(text=f"{round(var.get(),2):6.2f}")
+                num_label.configure(text=f"{round(var.get(), 2):6.2f}")
 
 
 class RadioButtonGroupPanel(Panel):

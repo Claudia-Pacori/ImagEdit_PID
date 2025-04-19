@@ -1,8 +1,20 @@
 import sys
+
 import cv2
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QPushButton, QVBoxLayout, QWidget, QFileDialog, QFrame, QHBoxLayout, QSlider
-from PyQt5.QtGui import QImage, QPixmap
 from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QFrame,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
+)
+
 
 class ImageEditor(QMainWindow):
     def __init__(self):
@@ -12,12 +24,12 @@ class ImageEditor(QMainWindow):
         self.image_label.setAlignment(Qt.AlignCenter)
         self.image_label.setScaledContents(True)
 
-        self.capture_button = QPushButton('Capturar desde Webcam', self)
-        self.load_image_button = QPushButton('Cargar Imagen', self)
-        self.load_video_button = QPushButton('Cargar Video', self)
+        self.capture_button = QPushButton("Capturar desde Webcam", self)
+        self.load_image_button = QPushButton("Cargar Imagen", self)
+        self.load_video_button = QPushButton("Cargar Video", self)
 
-        self.capture_image_button = QPushButton('Capturar Imagen', self)
-        self.pause_button = QPushButton('Pausar', self)
+        self.capture_image_button = QPushButton("Capturar Imagen", self)
+        self.pause_button = QPushButton("Pausar", self)
 
         self.video_slider = QSlider(Qt.Horizontal, self)
         self.video_slider.setEnabled(False)
@@ -57,7 +69,9 @@ class ImageEditor(QMainWindow):
 
     def load_image(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Cargar Imagen", "", "Images (*.png *.jpg *.bmp)")
+        file_path, _ = file_dialog.getOpenFileName(
+            self, "Cargar Imagen", "", "Images (*.png *.jpg *.bmp)"
+        )
         if file_path:
             self.video_capture = None
             self.timer.stop()
@@ -66,7 +80,9 @@ class ImageEditor(QMainWindow):
 
     def load_video(self):
         file_dialog = QFileDialog()
-        file_path, _ = file_dialog.getOpenFileName(self, "Cargar Video", "", "Videos (*.mp4 *.avi)")
+        file_path, _ = file_dialog.getOpenFileName(
+            self, "Cargar Video", "", "Videos (*.mp4 *.avi)"
+        )
         if file_path:
             self.video_capture = cv2.VideoCapture(file_path)
             self.timer.start(30)
@@ -85,7 +101,9 @@ class ImageEditor(QMainWindow):
     def display_image(self, image):
         height, width, channel = image.shape
         bytes_per_line = 3 * width
-        q_image = QImage(image.data, width, height, bytes_per_line, QImage.Format_RGB888).rgbSwapped()
+        q_image = QImage(
+            image.data, width, height, bytes_per_line, QImage.Format_RGB888
+        ).rgbSwapped()
         pixmap = QPixmap.fromImage(q_image)
         self.image_label.setPixmap(pixmap)
 
@@ -119,7 +137,8 @@ class ImageEditor(QMainWindow):
             return resized_image
         return image
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     editor = ImageEditor()
     editor.show()

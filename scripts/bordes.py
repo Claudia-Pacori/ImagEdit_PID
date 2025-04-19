@@ -1,9 +1,7 @@
 import numpy as np
-from PIL import Image
 
 
 def canny_edge_detection(image, sigma=0.8, low_threshold=10, high_threshold=90):
-
     # Aplicar suavizado Gaussiano para reducir el ruido
     smoothed = gaussian_smoothing(image, sigma)
 
@@ -92,8 +90,9 @@ def hysteresis_thresholding(image, low_threshold, high_threshold):
 
 
 if __name__ == "__main__":
-    import cv2
     import time
+
+    import cv2
 
     def calculate_mean_time(func):
         def wrapper(*args, **kwargs):
@@ -105,7 +104,7 @@ if __name__ == "__main__":
                 times.append(end_time - start_time)
 
             mean_time = sum(times) / len(times)
-            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+            print(f"Mean time: {1000 * mean_time:.2f} milliseconds")
 
         return wrapper
 
@@ -123,8 +122,8 @@ if __name__ == "__main__":
     @calculate_mean_time
     def detect_edges_with_opencv(image, low_threshold, high_threshold):
         return cv2.Canny(image, low_threshold, high_threshold)
-    
+
     detect_edges_with_opencv(image, low_threshold=20, high_threshold=60)
-    
+
     # Guardar la imagen edges
     # cv2.imwrite("images/edges.png", edges)

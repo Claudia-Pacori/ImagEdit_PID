@@ -1,6 +1,15 @@
-import customtkinter as ctk
-from settings import *
 from tkinter import filedialog
+
+import customtkinter as ctk
+
+from settings_ import (
+    BLUE,
+    DARK_GRAY,
+    DROPDOWN_HOVER_COLOR,
+    DROPDOWN_MAIN_COLOR,
+    DROPDOWN_MENU_COLOR,
+    SLIDER_BG,
+)
 
 
 class Panel(ctk.CTkFrame):

@@ -1,5 +1,8 @@
+import math
+import time
+
+import cv2
 import numpy as np
-import cv2, math, time
 
 
 def get_rotation_matrix(angle_pitch, angle_yaw, angle_roll):
@@ -99,8 +102,9 @@ def rotate_image_opencv(image, angle_roll, angle_pitch, angle_yaw):
 
 
 if __name__ == "__main__":
-    import cv2
     import time
+
+    import cv2
 
     def calculate_mean_time(func):
         def wrapper(*args, **kwargs):
@@ -112,25 +116,25 @@ if __name__ == "__main__":
                 times.append(end_time - start_time)
 
             mean_time = sum(times) / len(times)
-            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+            print(f"Mean time: {1000 * mean_time:.2f} milliseconds")
 
         return wrapper
 
     # Cargar la imagen
     image = cv2.imread("images/lena.png", cv2.IMREAD_COLOR)
-    
+
     # Rotacion manual
     @calculate_mean_time
     def manual_rotation():
-        rotated_image = rotate_image(image, 120, 60, 122)
-    
+        rotate_image(image, 120, 60, 122)
+
     # Rotacion con OpenCV
     @calculate_mean_time
     def opencv_rotation():
-        rotated_image = rotate_image_opencv(image, 120, 60, 122)
-    
+        rotate_image_opencv(image, 120, 60, 122)
+
     # Aplicar rotacion manual
     manual_rotation()
-    
+
     # Aplicar rotacion con OpenCV
     opencv_rotation()

@@ -1,5 +1,7 @@
+import time
+
+import cv2
 import numpy as np
-import cv2, time
 
 
 def erode_image(input_image):
@@ -18,9 +20,9 @@ def erode_image(input_image):
         for j in range(1, width + 1):
             # Por ventanas
             neighbors = [
-                padded_image[i + k][j + l] * kernel[k, l]
+                padded_image[i + k][j + m] * kernel[k, m]
                 for k in range(-1, 2)
-                for l in range(-1, 2)
+                for m in range(-1, 2)
             ]
             output_image[i - 1, j - 1] = min(neighbors)
 
@@ -35,8 +37,9 @@ def erode_image_opencv(input_image):
 
 
 if __name__ == "__main__":
-    import cv2
     import time
+
+    import cv2
 
     def calculate_mean_time(func):
         def wrapper(*args, **kwargs):
@@ -48,7 +51,7 @@ if __name__ == "__main__":
                 times.append(end_time - start_time)
 
             mean_time = sum(times) / len(times)
-            print(f"Mean time: {1000*mean_time:.2f} milliseconds")
+            print(f"Mean time: {1000 * mean_time:.2f} milliseconds")
 
         return wrapper
 

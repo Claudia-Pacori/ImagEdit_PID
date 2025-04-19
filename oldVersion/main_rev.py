@@ -1,7 +1,20 @@
 import customtkinter as ctk
-from widgets import *
 from menu import Menu
-from PIL import Image, ImageTk, ImageOps, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps, ImageTk
+from widgets import CloseOutput, ImageImport, ImageOutput
+
+from settings_ import (
+    BLUR_DEFAULT,
+    BRIGHTNESS_DEFAULT,
+    CONTRAST_DEFAULT,
+    EFFECT_OPTIONS,
+    FLIP_OPTIONS,
+    GRAYSACLE_DEFAULT,
+    INVERT_DEFAULT,
+    ROTATE_DEFAULT,
+    VIBRANCE_DEFAULT,
+    ZOOM_DEFAULT,
+)
 
 
 class App(ctk.CTk):
